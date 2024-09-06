@@ -1,0 +1,6 @@
+cloudProvider:
+  azure:
+    subscription: string
+    application_id: string
+    application_secret: string
+    tenant: string

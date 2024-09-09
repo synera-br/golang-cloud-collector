@@ -56,17 +56,17 @@ func main() {
 		log.Fatalln(err)
 	}
 
-	handler.NewAzureHandlerHttp(azureService, rest.RouterGroup)
+	handler.NewAzureHandlerHttp(azureService, rest.RouterGroup, rest.ValidateToken)
 	if err != nil {
 		log.Fatalln("error is: ", err.Error())
 	}
 
 	// Backstage
 	backstageService := service.NewBackstageService(azureService, amqp, cc)
-	handler.NewBackstageHandlerHttp(backstageService, rest.RouterGroup)
+	handler.NewBackstageHandlerHttp(backstageService, rest.RouterGroup, rest.ValidateToken)
 	if err != nil {
 		log.Fatalln("error is: ", err.Error())
 	}
-
 	rest.Run(rest.Route.Handler())
+
 }

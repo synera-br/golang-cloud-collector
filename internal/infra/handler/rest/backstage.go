@@ -17,22 +17,26 @@ type BackstageHandlerHttp struct {
 	Service service.BackstageServiceInterface
 }
 
-func NewBackstageHandlerHttp(svc service.BackstageServiceInterface, routerGroup *gin.RouterGroup) BackstageHandlerHttpInterface {
+func NewBackstageHandlerHttp(svc service.BackstageServiceInterface, routerGroup *gin.RouterGroup, middleware ...func(c *gin.Context)) BackstageHandlerHttpInterface {
 
 	azure := &BackstageHandlerHttp{
 		Service: svc,
 	}
 
-	azure.handlers(routerGroup)
+	azure.handlers(routerGroup, middleware...)
 
 	return azure
 }
 
-func (c *BackstageHandlerHttp) handlers(routerGroup *gin.RouterGroup) {
+func (c *BackstageHandlerHttp) handlers(routerGroup *gin.RouterGroup, middleware ...func(c *gin.Context)) {
+	middlewareList := make([]gin.HandlerFunc, len(middleware))
+	for i, mw := range middleware {
+		middlewareList[i] = mw
+	}
 
-	routerGroup.POST("/backstage", c.TriggerSyncProvider)
-	routerGroup.GET("/backstage", c.GetAllKinds)
-	routerGroup.GET("/backstage/:namespace/:kind/:name", c.GetKind)
+	routerGroup.POST("/backstage", append(middlewareList, c.TriggerSyncProvider)...)
+	routerGroup.GET("/backstage", append(middlewareList, c.GetAllKinds)...)
+	routerGroup.GET("/backstage/:namespace/:kind/:name", append(middlewareList, c.GetKind)...)
 }
 
 // BackstageSyncProvider    godoc

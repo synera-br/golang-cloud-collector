@@ -1,8 +1,8 @@
 package http_server
 
 import (
+	"log"
 	"net/http"
-	"strings"
 
 	"github.com/gin-gonic/gin"
 	"golang.org/x/net/http2"
@@ -36,7 +36,9 @@ func (s *RestAPI) Run(handle http.Handler) error {
 		Addr:    ":" + s.Config.Port,
 		Handler: s.Route.Handler(),
 	}
+
 	http2.ConfigureServer(&srv, &http2.Server{})
+	s.Route.Use(s.ValidateToken)
 	s.Route.Use(s.MiddlewareHeader)
 
 	return srv.ListenAndServe()
@@ -56,26 +58,32 @@ func setHeader(c *gin.Context) {
 }
 
 func (s *RestAPI) MiddlewareHeader(c *gin.Context) {
-
+	if c.GetHeader("Authorization") != s.Config.Token {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "not authorized"})
+		c.Writer.Flush()
+		c.Abort()
+		return
+	}
 	c.Next()
 }
 
-func (s *RestAPI) validateToken(c *gin.Context) {
+func (s *RestAPI) ValidateToken(c *gin.Context) {
 
-	if c.GetHeader("Authorization") == "" {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid authorization header"})
+	log.Println("token...")
+	if c.GetHeader("Authorization") != s.Config.Token {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "not authorized"})
 		c.Writer.Flush()
 		c.Abort()
 		return
 	}
 
-	token := strings.Split(c.GetHeader("Authorization"), " ")[1]
-	if token == "" {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid authorization header"})
-		c.Writer.Flush()
-		c.Abort()
-		return
-	}
+	// token := strings.Split(c.GetHeader("Authorization"), " ")[1]
+	// if token == "" {
+	// 	c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid authorization header"})
+	// 	c.Writer.Flush()
+	// 	c.Abort()
+	// 	return
+	// }
 
 	c.Next()
 }

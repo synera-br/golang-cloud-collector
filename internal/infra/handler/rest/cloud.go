@@ -19,20 +19,24 @@ type AzureHandlerHttp struct {
 	Service service.AzureServiceInterface
 }
 
-func NewAzureHandlerHttp(svc service.AzureServiceInterface, routerGroup *gin.RouterGroup) AzureHandlerHttpInterface {
+func NewAzureHandlerHttp(svc service.AzureServiceInterface, routerGroup *gin.RouterGroup, middleware ...func(c *gin.Context)) AzureHandlerHttpInterface {
 
 	azure := &AzureHandlerHttp{
 		Service: svc,
 	}
 
-	azure.handlers(routerGroup)
+	azure.handlers(routerGroup, middleware...)
 
 	return azure
 }
 
-func (c *AzureHandlerHttp) handlers(routerGroup *gin.RouterGroup) {
+func (c *AzureHandlerHttp) handlers(routerGroup *gin.RouterGroup, middleware ...func(c *gin.Context)) {
+	middlewareList := make([]gin.HandlerFunc, len(middleware))
+	for i, mw := range middleware {
+		middlewareList[i] = mw
+	}
 
-	routerGroup.GET("/azure", c.ListResources)
+	routerGroup.GET("/azure", append(middlewareList, c.ListResources)...)
 	routerGroup.GET("/azure/:name", c.FindByResourceGroup)
 	routerGroup.GET("/azure/tags", c.FindByTag)
 	routerGroup.GET("/azure/subscription/:name", c.GetSubscription)

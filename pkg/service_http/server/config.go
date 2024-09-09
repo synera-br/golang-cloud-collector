@@ -28,6 +28,7 @@ type RestAPIConfig struct {
 	Name           string `mapstructure:"name"`
 	CertificateCrt string `mapstructure:"certificate_crt"`
 	CertificateKey string `mapstructure:"certificate_key"`
+	Token          string `mapstructure:"token"`
 }
 
 type RestAPI struct {
@@ -69,6 +70,7 @@ func Parse(m map[string]interface{}) *RestAPIConfig {
 		Name:           "",
 		CertificateCrt: "",
 		CertificateKey: "",
+		Token:          "",
 	}
 
 	if m["port"] != nil {
@@ -90,6 +92,10 @@ func Parse(m map[string]interface{}) *RestAPIConfig {
 
 	if m["version"] != nil {
 		c.Version = m["version"].(string)
+	}
+
+	if m["token"] != nil {
+		c.Token = m["token"].(string)
 	}
 
 	if m["certificate_crt"] != nil {

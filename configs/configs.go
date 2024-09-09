@@ -62,6 +62,7 @@ type Connections struct {
 	PathConfigFile string `mapstructure:"path_config_file"`
 	Paths          *ConfigPath
 	FileConfig     *FileConfig
+	Provider       *Provider `json:"cloud_provider" mapstructure:"cloud_provider"`
 }
 
 func LoadConfig() (*Connections, error) {
@@ -107,5 +108,6 @@ func LoadConfig() (*Connections, error) {
 		PathConfigFile: fc.ConfigFilePath,
 		Paths:          &AppConfig,
 		FileConfig:     &fc,
+		Provider:       cfg.Provider,
 	}, err
 }

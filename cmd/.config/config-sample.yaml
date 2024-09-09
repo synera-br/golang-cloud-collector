@@ -1,0 +1,57 @@
+cloud_provider:
+  azure:
+    subscription_id: xxx
+    application_id: xxx
+    application_secret: xxx
+    tenant_id: xxx
+cache:
+  host: localhost
+  user: xxx
+  password: xxx
+  ssl_enabled: false
+  port: 6379
+  database: "0"
+  prefix: collector
+  ttl: 36000
+amqp:
+  host: xxx
+  user: xxx
+  password: xxx
+  ssl_enabled: false
+  port: 5672
+  vhost: xxx
+  ttl: 360
+  rules:
+    exchanges:
+    - name: "collector"
+      type: "direct"
+      durable: true
+      auto_delete: false
+    - name: "dlx_exchange"
+      type: "direct"
+      durable: true
+      auto_delete: false
+    queues:
+    - name: "manifests"
+      durable: true
+      exclusive: false
+      auto_delete: false
+      dead_letter_exchange: "dlx_exchange"
+      dead_letter_routing_key: "dlx_key"
+    - name: "dlx_queue"
+      durable: true
+      exclusive: false
+      auto_delete: false
+    bindings:
+    - queue: "manifests"
+      exchange: "collector"
+      routing_key: "backstage"
+    - queue: "dlx_queue"
+      exchange: "dlx_exchange"
+      routing_key: "dlx_key"
+webserver:
+  port: 8443
+  name: api
+  certificate_crt: ""
+  certificate_key: ""
+  ssl_enabled: false

@@ -55,3 +55,4 @@ webserver:
   certificate_crt: ""
   certificate_key: ""
   ssl_enabled: false
+  token: xxx

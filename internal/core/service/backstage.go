@@ -60,37 +60,9 @@ func (b *BackstageService) azureTriggerSyncProvider(ctx context.Context, trigger
 		}
 
 		// var sub *entity.AzureSubscription
-
-		for _, r := range rsg {
-			if r.ID != nil {
-				parseID := b.parseResourceID(*r.ID)
-				resultRsg, err := b.Azure.FilterResources(ctx, parseID["resourcegroups"])
-				if err != nil {
-					return response, err
-				}
-
-				resultSubs, err := b.Azure.GetSubscription(ctx, "", "ea9f2737-3006-4d2f-b375-177c70866743")
-				if err != nil {
-					return response, err
-				}
-
-				dependsSubs := b.parseToTemplate(resultSubs, "subscriptions")
-				if !b.contains(response, *dependsSubs) {
-					response = append(response, *dependsSubs)
-				}
-				dependsGroup := b.parseToTemplate(resultRsg[0], "resourcegroups")
-				dependsGroup.Spec.DependsOn = append(dependsGroup.Spec.DependsOn, fmt.Sprintf("resource:%s", dependsSubs.Metadata.Name))
-				if !b.contains(response, *dependsGroup) {
-					response = append(response, *dependsGroup)
-				}
-				resource := b.parseToTemplate(r, "resources")
-				if resource != nil {
-					resource.Spec.DependsOn = append(resource.Spec.DependsOn, fmt.Sprintf("resource:%s", dependsGroup.Metadata.Name))
-					if !b.contains(response, *resource) {
-						response = append(response, *resource)
-					}
-				}
-			}
+		response, err = b.parseRelationship(ctx, response, rsg)
+		if err != nil {
+			return response, err
 		}
 
 	} else if trigger.Tag.Key != "" && trigger.Tag.Value != "" {
@@ -106,36 +78,9 @@ func (b *BackstageService) azureTriggerSyncProvider(ctx context.Context, trigger
 		}
 
 		// var sub *entity.AzureSubscription
-		for _, r := range rsg {
-			if r.ID != nil {
-				parseID := b.parseResourceID(*r.ID)
-				resultRsg, err := b.Azure.FilterResources(ctx, parseID["resourcegroups"])
-				if err != nil {
-					return response, err
-				}
-
-				resultSubs, err := b.Azure.GetSubscription(ctx, "", "ea9f2737-3006-4d2f-b375-177c70866743")
-				if err != nil {
-					return response, err
-				}
-
-				dependsSubs := b.parseToTemplate(resultSubs, "subscriptions")
-				if !b.contains(response, *dependsSubs) {
-					response = append(response, *dependsSubs)
-				}
-				dependsGroup := b.parseToTemplate(resultRsg[0], "resourcegroups")
-				dependsGroup.Spec.DependsOn = append(dependsGroup.Spec.DependsOn, fmt.Sprintf("resource:%s", dependsSubs.Metadata.Name))
-				if !b.contains(response, *dependsGroup) {
-					response = append(response, *dependsGroup)
-				}
-				resource := b.parseToTemplate(r, "resources")
-				if resource != nil {
-					resource.Spec.DependsOn = append(resource.Spec.DependsOn, fmt.Sprintf("resource:%s", dependsGroup.Metadata.Name))
-					if !b.contains(response, *resource) {
-						response = append(response, *resource)
-					}
-				}
-			}
+		response, err = b.parseRelationship(ctx, response, rsg)
+		if err != nil {
+			return response, err
 		}
 	}
 

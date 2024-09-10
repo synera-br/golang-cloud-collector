@@ -2,8 +2,10 @@ package repository
 
 import (
 	"context"
+	"crypto/tls"
 	"fmt"
 	"log"
+	"net/http"
 	"strings"
 
 	"github.com/Azure/azure-sdk-for-go/sdk/azcore/policy"
@@ -36,8 +38,24 @@ func (a *AzureRepository) Connection(provider *entity.AzureProvider) error {
 
 	var err error
 
+	transport := &http.Transport{
+		TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+	}
+
+	// Create a custom HTTP client with the custom transport
+	httpClient := &http.Client{
+		Transport: transport,
+	}
+
+	// Set up the Azure identity client options to use the custom HTTP client
+	credOptions := &azidentity.ClientSecretCredentialOptions{
+		ClientOptions: policy.ClientOptions{
+			Transport: httpClient,
+		},
+	}
+
 	a.Credential, err = azidentity.NewClientSecretCredential(provider.Tenant, provider.ApplicationID, provider.ApplicationSecret, &azidentity.ClientSecretCredentialOptions{
-		ClientOptions: policy.ClientOptions{},
+		ClientOptions: credOptions.ClientOptions,
 	})
 	if err != nil {
 		return fmt.Errorf("failed to create client secret credential: %w", err)

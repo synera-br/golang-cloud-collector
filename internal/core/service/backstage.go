@@ -53,8 +53,8 @@ func (b *BackstageService) azureTriggerSyncProvider(ctx context.Context, trigger
 	var err error = nil
 	response := []entity.KindReource{}
 
-	if trigger.Account != "" {
-		rsg, err := b.Azure.ListResourcesByResourceGroup(ctx, trigger.Account)
+	if trigger.TargetResource.ResourceName != "" {
+		rsg, err := b.Azure.ListResourcesByResourceGroup(ctx, trigger.TargetResource.ResourceName)
 		if err != nil {
 			return response, err
 		}
@@ -65,8 +65,8 @@ func (b *BackstageService) azureTriggerSyncProvider(ctx context.Context, trigger
 			return response, err
 		}
 
-	} else if trigger.Tag.Key != "" && trigger.Tag.Value != "" {
-		_, err = b.Azure.ListResourcesByTag(ctx, trigger.Tag.Key, trigger.Tag.Value)
+	} else if trigger.TargetTags.Key != "" && trigger.TargetTags.Value != "" {
+		_, err = b.Azure.ListResourcesByTag(ctx, trigger.TargetTags.Key, trigger.TargetTags.Value)
 		if err != nil {
 			return nil, err
 		}

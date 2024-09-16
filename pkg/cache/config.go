@@ -33,6 +33,16 @@ func NewCacheConnection(pathConfigFile, nameFileConfig, nameFileExtention string
 
 	cfg.Client = redis.NewClient(opt)
 
+	// Enable tracing instrumentation.
+	// if err := redisotel.InstrumentTracing(cfg.Client, ); err != nil {
+	// 	panic(err)
+	// }
+
+	// Enable metrics instrumentation.
+	// if err := redisotel.InstrumentMetrics(cfg.Client); err != nil {
+	// 	panic(err)
+	// }
+
 	return cfg, nil
 }
 

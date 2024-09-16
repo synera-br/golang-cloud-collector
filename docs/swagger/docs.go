@@ -381,6 +381,17 @@ const docTemplate = `{
         }
     },
     "definitions": {
+        "github_com_synera-br_golang-cloud-collector_internal_core_entity.FilterResource": {
+            "type": "object",
+            "properties": {
+                "name": {
+                    "type": "string"
+                },
+                "type": {
+                    "type": "string"
+                }
+            }
+        },
         "github_com_synera-br_golang-cloud-collector_internal_core_entity.FilterTag": {
             "type": "object",
             "properties": {
@@ -536,13 +547,13 @@ const docTemplate = `{
                 "provider"
             ],
             "properties": {
-                "account": {
-                    "type": "string"
-                },
                 "provider": {
                     "type": "string"
                 },
-                "tag": {
+                "target_resource": {
+                    "$ref": "#/definitions/github_com_synera-br_golang-cloud-collector_internal_core_entity.FilterResource"
+                },
+                "target_tag": {
                     "$ref": "#/definitions/github_com_synera-br_golang-cloud-collector_internal_core_entity.FilterTag"
                 }
             }

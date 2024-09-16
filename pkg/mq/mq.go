@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	amqp "github.com/rabbitmq/amqp091-go"
+	"go.opentelemetry.io/otel"
 )
 
 type AMQPServiceInterface interface {
@@ -30,6 +31,7 @@ func (a *MQConfig) Consumer(ctx context.Context, data DataAMQP, msgChannel chan<
 
 	go func() {
 		for msg := range msgs {
+
 			msgChannel <- msg
 		}
 		close(msgChannel)
@@ -47,6 +49,15 @@ func (a *MQConfig) Consumer(ctx context.Context, data DataAMQP, msgChannel chan<
 // message to send
 // route key to apply in message
 func (a *MQConfig) Publish(ctx context.Context, data DataAMQP) error {
+
+	tracer := otel.Tracer("mq.Publish")
+	_, span := tracer.Start(ctx, "mq.Publish")
+	defer span.End()
+
+	headers := amqp.Table{
+		"trace-id": span.SpanContext().TraceID().String(),
+		"span-id":  span.SpanContext().SpanID().String(),
+	}
 
 	content := "text/plain"
 	if data.ContentType != "" {
@@ -66,6 +77,7 @@ func (a *MQConfig) Publish(ctx context.Context, data DataAMQP) error {
 			DeliveryMode: amqp.Persistent,
 			ContentType:  content,
 			Body:         data.Body,
+			Headers:      headers,
 		})
 
 	return err

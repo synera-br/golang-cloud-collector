@@ -1,11 +1,12 @@
 package handler
 
 import (
-	"context"
+	"errors"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
 	"github.com/synera-br/golang-cloud-collector/internal/core/service"
+	"github.com/synera-br/golang-cloud-collector/pkg/otelpkg"
 )
 
 type AzureHandlerHttpInterface interface {
@@ -17,12 +18,14 @@ type AzureHandlerHttpInterface interface {
 
 type AzureHandlerHttp struct {
 	Service service.AzureServiceInterface
+	Tracer  *otelpkg.OtelPkgInstrument
 }
 
-func NewAzureHandlerHttp(svc service.AzureServiceInterface, routerGroup *gin.RouterGroup, middleware ...func(c *gin.Context)) AzureHandlerHttpInterface {
+func NewAzureHandlerHttp(svc service.AzureServiceInterface, otl *otelpkg.OtelPkgInstrument, routerGroup *gin.RouterGroup, middleware ...func(c *gin.Context)) AzureHandlerHttpInterface {
 
 	azure := &AzureHandlerHttp{
 		Service: svc,
+		Tracer:  otl,
 	}
 
 	azure.handlers(routerGroup, middleware...)
@@ -54,9 +57,12 @@ func (c *AzureHandlerHttp) handlers(routerGroup *gin.RouterGroup, middleware ...
 // @Failure     500 {object} string
 // @Router      /azure [get]
 func (obj *AzureHandlerHttp) ListResources(c *gin.Context) {
+	ctx, span := obj.Tracer.Tracer.Start(c.Request.Context(), "AzureHandlerHttp.ListResources")
+	defer span.End()
 
-	result, err := obj.Service.ListResources(context.Background())
+	result, err := obj.Service.ListResources(ctx)
 	if err != nil {
+		span.RecordError(err)
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error": err.Error()})
 		return
@@ -64,7 +70,7 @@ func (obj *AzureHandlerHttp) ListResources(c *gin.Context) {
 
 	if len(result) == 0 {
 		c.JSON(http.StatusNotFound, gin.H{
-			"error": err.Error()})
+			"error": errors.New("not found")})
 		return
 	}
 
@@ -83,16 +89,21 @@ func (obj *AzureHandlerHttp) ListResources(c *gin.Context) {
 // @Failure     500 {object} string
 // @Router      /azure/{name} [get]
 func (obj *AzureHandlerHttp) FindByResourceGroup(c *gin.Context) {
+	ctx, span := obj.Tracer.Tracer.Start(c.Request.Context(), "AzureHandlerHttp.ListResources")
+	defer span.End()
+
 	rsg := c.Param("name")
 
 	if len(rsg) == 0 {
+		span.RecordError(errors.New("resource group name not setted"))
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error": "resource group name not setted"})
 		return
 	}
 
-	result, err := obj.Service.ListResourcesByResourceGroup(context.Background(), rsg)
+	result, err := obj.Service.ListResourcesByResourceGroup(ctx, rsg)
 	if err != nil {
+		span.RecordError(err)
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error": err.Error()})
 		return
@@ -120,15 +131,19 @@ func (obj *AzureHandlerHttp) FindByResourceGroup(c *gin.Context) {
 // @Failure     500 {object} string
 // @Router      /azure/tags [get]
 func (obj *AzureHandlerHttp) FindByTag(c *gin.Context) {
+	ctx, span := obj.Tracer.Tracer.Start(c.Request.Context(), "AzureHandlerHttp.ListResources")
+	defer span.End()
 
 	if len(c.Request.URL.Query()) != 2 {
+		span.RecordError(errors.New("key and value of tags not setted"))
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error": "key and value of tags not setted"})
 		return
 	}
 
-	result, err := obj.Service.ListResourcesByTag(context.Background(), c.Request.URL.Query().Get("key"), c.Request.URL.Query().Get("value"))
+	result, err := obj.Service.ListResourcesByTag(ctx, c.Request.URL.Query().Get("key"), c.Request.URL.Query().Get("value"))
 	if err != nil {
+		span.RecordError(err)
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error": err.Error()})
 		return
@@ -154,15 +169,19 @@ func (obj *AzureHandlerHttp) FindByTag(c *gin.Context) {
 // @Failure     500 {object} string
 // @Router      /azure/subscription/{name} [get]
 func (obj *AzureHandlerHttp) GetSubscription(c *gin.Context) {
+	ctx, span := obj.Tracer.Tracer.Start(c.Request.Context(), "AzureHandlerHttp.ListResources")
+	defer span.End()
+
 	subs := c.Param("name")
 
 	if len(subs) == 0 {
+		span.RecordError(errors.New("resource group name not setted"))
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error": "resource group name not setted"})
 		return
 	}
 
-	result, err := obj.Service.GetSubscription(context.Background(), subs, subs)
+	result, err := obj.Service.GetSubscription(ctx, subs, subs)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error": err.Error()})

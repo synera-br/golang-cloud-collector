@@ -61,15 +61,24 @@ func (c *CloudProvider) GetName() string {
 	return "none"
 }
 
+// FilterResource
+// Filtro de recursos da cloud por nome e tipo do recurso
+// ResourceName nome do recurso.  Exemplo blablabla
+// ResourceType tipo do recurso. Example storageAccount
+type FilterResource struct {
+	ResourceName string `json:"name,omitempty"`
+	ResourceType string `json:"type,omitempty"`
+}
+
 type FilterTag struct {
-	Key   string `json:"key"`
-	Value string `json:"value"`
+	Key   string `json:"key,omitempty"`
+	Value string `json:"value,omitempty"`
 }
 
 type Trigger struct {
-	Provider string    `json:"provider" binding:"required"`
-	Account  string    `json:"account"`
-	Tag      FilterTag `json:"tag"`
+	Provider       string         `json:"provider" binding:"required"`
+	TargetResource FilterResource `json:"target_resource,omitempty"`
+	TargetTags     FilterTag      `json:"target_tag,omitempty"`
 }
 
 type Depends struct {

@@ -16,6 +16,7 @@ type CacheInterface interface {
 }
 
 func (c *CacheConfig) Set(ctx context.Context, key string, val []byte, ttl time.Duration) error {
+
 	_, err := c.Client.Set(ctx, fmt.Sprintf("%s_%s", c.Prefix, key), string(val), ttl).Result()
 	if err != nil {
 		return err

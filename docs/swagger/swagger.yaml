@@ -1,5 +1,12 @@
 basePath: /api
 definitions:
+  github_com_synera-br_golang-cloud-collector_internal_core_entity.FilterResource:
+    properties:
+      name:
+        type: string
+      type:
+        type: string
+    type: object
   github_com_synera-br_golang-cloud-collector_internal_core_entity.FilterTag:
     properties:
       key:
@@ -237,11 +244,11 @@ definitions:
     type: object
   github_com_synera-br_golang-cloud-collector_internal_core_entity.Trigger:
     properties:
-      account:
-        type: string
       provider:
         type: string
-      tag:
+      target_resource:
+        $ref: '#/definitions/github_com_synera-br_golang-cloud-collector_internal_core_entity.FilterResource'
+      target_tag:
         $ref: '#/definitions/github_com_synera-br_golang-cloud-collector_internal_core_entity.FilterTag'
     required:
     - provider

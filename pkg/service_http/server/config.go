@@ -116,7 +116,7 @@ var SwaggerInfo = &swag.Spec{
 	Host:             "",
 	BasePath:         "",
 	Schemes:          []string{},
-	Title:            "",
+	Title:            "cloud-collector-resources3",
 	Description:      "",
 	InfoInstanceName: "swagger",
 	// SwaggerTemplate:  docTemplate,
@@ -141,7 +141,6 @@ func newRestAPI(config *RestAPIConfig) (*gin.Engine, *gin.RouterGroup) {
 	router.GET("/metrics", prometheusHandler())
 
 	// Set swagger
-
 	routerPath.GET("/docs/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler, ginSwagger.DefaultModelsExpandDepth(-1)))
 	routerPath.GET("/docs/swagger", func(c *gin.Context) {
 		c.Redirect(301, fmt.Sprintf("%s/docs/swagger/index.html", routerGroupPath))

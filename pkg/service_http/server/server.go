@@ -1,7 +1,6 @@
 package http_server
 
 import (
-	"log"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -69,7 +68,6 @@ func (s *RestAPI) MiddlewareHeader(c *gin.Context) {
 
 func (s *RestAPI) ValidateToken(c *gin.Context) {
 
-	log.Println("token...")
 	if c.GetHeader("Authorization") != s.Config.Token {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "not authorized"})
 		c.Writer.Flush()

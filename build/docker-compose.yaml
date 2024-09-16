@@ -1,6 +1,17 @@
 version: "3.8"
 
 services:
+  nr-infra:
+    image: docker.io/newrelic/infrastructure-bundle
+    container_name: infrastructure-bundle
+    hostname: infrastructure-bundle
+    cap_add:
+    - SYS_PTRACE
+    privileged: true
+    volumes:
+    - /run/user/1002/podman/podman.sock:/var/run/docker.sock
+    env:
+    - NRIA_LICENSE_KEY=ac6ac44c6b16d9856c89090679f0474cFFFFNRAL
   redis:
     container_name: redis
     hostname: redis
@@ -8,24 +19,7 @@ services:
     restart: always
     ports:
       - "6379:6379"
-    # volumes:
-    #   - /path/to/local/dаta:/root/redis
-    #   - /path/to/local/redis.conf:/usr/local/etc/redis/redis.conf
     environment:
       - REDIS_PASSWORD=password
       - REDIS_PORT=6379
       - REDIS_DATABASES=16
-  # redis-commander:
-  #   container_name: redis-commander
-  #   hostname: redis-commander
-  #   image: docker.io/rediscommander/redis-commander:latest
-  #   restart: always
-  #   environment:
-  #     REDIS_HOSTS: redis
-  #     REDIS_HOST: redis
-  #     REDIS_PORT: redis:6379
-  #     REDIS_PASSWORD: password
-  #     HTTP_USER: root
-  #     HTTP_PASSWORD: root
-  #   ports:
-  #   - "8081:8081"

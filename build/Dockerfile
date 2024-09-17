@@ -1,19 +1,10 @@
 FROM golang:1.22-alpine AS build
 
-ARG GOPRIVATE_REPO
-ARG AZURE_CREDENTIAL
-
 WORKDIR /app
 RUN apk update && apk add --no-cache git
-RUN export GOPRIVATE=${GOPRIVATE_REPO}
 
 # Create nonroot user
 RUN adduser --disabled-password -u 10001 appuser
-
-# NETRC
-RUN echo "machine dev.azure.com" >> ~/.netrc
-RUN echo "login albatross-getnet" >> ~/.netrc
-RUN echo "password ${AZURE_CREDENTIAL}" >> ~/.netrc
 
 ENV GOOS=linux
 ENV GOARCH=amd64

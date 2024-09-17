@@ -1,17 +1,6 @@
 version: "3.8"
 
 services:
-  nr-infra:
-    image: docker.io/newrelic/infrastructure-bundle
-    container_name: infrastructure-bundle
-    hostname: infrastructure-bundle
-    cap_add:
-    - SYS_PTRACE
-    privileged: true
-    volumes:
-    - /run/user/1002/podman/podman.sock:/var/run/docker.sock
-    env:
-    - NRIA_LICENSE_KEY=ac6ac44c6b16d9856c89090679f0474cFFFFNRAL
   redis:
     container_name: redis
     hostname: redis

@@ -1,23 +1,80 @@
-name: Change Tracking Marker
+name: container-image
+run-name: Build a container Image
+
 on:
   push:
-    branches:
-      - main
-      - develop
+    branches: [ "main", "develop", "staging"]
+  pull_request:
+    branches: [ "main", "develop", "staging"]
 
+env:
+  registry_username: ${{ vars.REGISTRY_USERNAME }}
+  registry_password: ${{ secrets.REGISTRY_PASSWORD }}
+  registry_host: ${{ vars.REGISTRY_HOST }}
+  container_id: $(date +%s)
+  contaner_name: cloud-collector
+  
 jobs:
+
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+
+    - name: Docker Auth
+      id: docker-auth
+      uses: 'docker/login-action@v1'
+      with:
+        username: ${{ env.registry_username }}
+        password: ${{ env.registry_password }}
+        registry: ${{ env.registry_host }}
+
+    - name: Set container id
+      id: container_id
+      run: echo "::set-output name=ID::${{ env.container_id }}"
+
+    - name: Url image
+      run: |
+        echo ${{ env.registry_host }}/${{ env.registry_username }}/${{ env.contaner_name }}:${{ steps.container_id.outputs.ID }}
+    - name: Build and push
+      uses: docker/build-push-action@v6
+      with:
+        file: ./build/Dockerfile
+        context: ./
+        push: true
+        tags: ${{ env.registry_host }}/${{ env.registry_username }}/${{ env.contaner_name }}:${{ steps.container_id.outputs.ID }}
+        # build-args: 
+
+
+    # - name: Build the container image
+    #   run: |
+    #     export  LOCALPATH=`$(pwd)`
+    #     DOCKER_BUILDKIT=1
+    #     docker build --tag ${{ env.registry_host }}/${{ env.registry_username }}/${{ env.contaner_name }}:${{ steps.container_id.outputs.ID }}  --build-args LOCALPATH=$LOCALPATH  -f ./packages/backend/Dockerfile .
+    #   working-directory: ./backstage
+
+    # - name: Publish the image
+    #   run: |
+    #     echo docker push ${{ env.registry_host }}/${{ env.registry_username }}/${{ env.contaner_name }}:${{ steps.container_id.outputs.ID }}
+    #   working-directory: ./
+
   newrelic:
     runs-on: ubuntu-latest
     name: New Relic
+    needs: build
+    if: needs.build.result == 'success'
     steps:
+      # This step builds a var with the release tag value to use later
       - name: Set Release Version from Tag
         run: echo "RELEASE_VERSION=${{ github.ref_name }}" >> $GITHUB_ENV
       # This step creates a new Change Tracking Marker
       - name: New Relic Application Deployment Marker
-        uses: newrelic/deployment-marker-action@v2.2.0
+        uses: newrelic/deployment-marker-action@v2.3.0
         with:
           apiKey: ${{ secrets.NEW_RELIC_API_KEY }}
-          region: "US"
           guid: ${{ secrets.NEW_RELIC_DEPLOYMENT_ENTITY_GUID }}
           version: "${{ env.RELEASE_VERSION }}"
           user: "${{ github.actor }}"

@@ -24,7 +24,7 @@ import (
 
 // @contact.name   Rafael Tomelin
 // @contact.url    https://local
-// @contact.email  rafael.tomelin@gmail.com
+// @contact.email  contato@synera.com.br
 
 // @schemes   http
 // @BasePath  /api
